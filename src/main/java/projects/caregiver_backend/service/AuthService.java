@@ -10,6 +10,7 @@ import projects.caregiver_backend.dtos.request.RegisterRequest;
 import projects.caregiver_backend.model.Role;
 import projects.caregiver_backend.model.User;
 import projects.caregiver_backend.repositories.UserRepository;
+import projects.caregiver_backend.security.JwtService;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public User register(RegisterRequest request) {
 
@@ -36,14 +38,14 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.ROLE_USER);
+        user.setRole(Role.USER);
 
         return userRepository.save(user);
 
     }
 
 
-    public void login(LoginRequest request) {
+    public String login(LoginRequest request) {
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(
@@ -55,5 +57,9 @@ public class AuthService {
                     HttpStatus.UNAUTHORIZED, "Invalid credentials"
             );
         }
+        return jwtService.generateToken(
+                user.getUsername(),
+                user.getRole().name()
+        );
     }
 }

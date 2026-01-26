@@ -6,9 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import projects.caregiver_backend.dtos.request.LoginRequest;
 import projects.caregiver_backend.dtos.request.RegisterRequest;
+import projects.caregiver_backend.dtos.response.LoginResponse;
 import projects.caregiver_backend.dtos.response.RegisterResponse;
 import projects.caregiver_backend.model.User;
 import projects.caregiver_backend.service.AuthService;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -36,8 +39,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        authService.login(request);
+        String token = authService.login(request);
 
-        return ResponseEntity.ok("Login successful");
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
