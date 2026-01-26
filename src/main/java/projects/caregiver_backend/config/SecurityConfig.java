@@ -36,7 +36,7 @@ public class SecurityConfig {
 
                         // Public endpoints
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/caregivers/search/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/caregivers/**").permitAll()
 
                         // Admin-only
                         .requestMatchers("/admin/**").hasRole("ADMIN")
