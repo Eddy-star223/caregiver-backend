@@ -3,11 +3,13 @@ package projects.caregiver_backend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import projects.caregiver_backend.dtos.request.CaregiverFilterRequest;
 import projects.caregiver_backend.dtos.request.CaregiverOnboardingRequest;
 import projects.caregiver_backend.dtos.response.CaregiverResponse;
 import projects.caregiver_backend.model.Caregiver;
 import projects.caregiver_backend.model.OnboardingStatus;
 import projects.caregiver_backend.model.User;
+import projects.caregiver_backend.repositories.AvailabilityRepository;
 import projects.caregiver_backend.repositories.CaregiverRepository;
 import projects.caregiver_backend.repositories.ReviewRepository;
 import projects.caregiver_backend.repositories.UserRepository;
@@ -25,6 +27,7 @@ public class CaregiverService {
     private final CaregiverRepository caregiverRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final AvailabilityRepository availabilityRepository;
 
 
     @Transactional
@@ -98,4 +101,61 @@ public class CaregiverService {
                 })
                 .toList();
     }
+
+    public List<CaregiverResponse> filterCaregivers(
+            CaregiverFilterRequest request
+    ) {
+
+        List<Caregiver> caregivers =
+                caregiverRepository.filterCaregivers(
+                        request.city(),
+                        request.neighborhood(),
+                        request.minPrice(),
+                        request.maxPrice()
+                );
+
+        // Availability filter
+        if (request.availableDate() != null) {
+            List<UUID> availableIds =
+                    availabilityRepository.findAvailableCaregiverIds(
+                            request.availableDate()
+                    );
+
+            caregivers = caregivers.stream()
+                    .filter(c -> availableIds.contains(c.getId()))
+                    .toList();
+        }
+
+        // Ratings (bulk fetch)
+        Map<UUID, CaregiverRatingView> ratings =
+                reviewRepository.fetchCaregiverRatings()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                CaregiverRatingView::getCaregiverId,
+                                r -> r
+                        ));
+
+        return caregivers.stream()
+                .filter(c -> {
+                    CaregiverRatingView r = ratings.get(c.getId());
+                    return request.minRating() == null ||
+                            (r != null && r.getAverageRating() >= request.minRating());
+                })
+                .map(c -> {
+                    CaregiverRatingView r = ratings.get(c.getId());
+
+                    return new CaregiverResponse(
+                            c.getId(),
+                            c.getFullName(),
+                            c.getCity(),
+                            c.getNeighborhood(),
+                            c.getPhone(),
+                            c.getBio(),
+                            r != null ? r.getAverageRating() : 0.0,
+                            r != null ? r.getReviewCount() : 0L
+                    );
+                })
+                .toList();
+    }
+
 }
