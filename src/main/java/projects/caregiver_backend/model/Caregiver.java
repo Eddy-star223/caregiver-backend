@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -45,5 +46,9 @@ public class Caregiver {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private OnboardingStatus onboardingStatus = OnboardingStatus.PENDING;
+
+    @Column(nullable = false)
+    private BigDecimal hourlyRate;
+
 
 }

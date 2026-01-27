@@ -9,9 +9,14 @@ import projects.caregiver_backend.model.Caregiver;
 import projects.caregiver_backend.model.OnboardingStatus;
 import projects.caregiver_backend.model.User;
 import projects.caregiver_backend.repositories.CaregiverRepository;
+import projects.caregiver_backend.repositories.ReviewRepository;
 import projects.caregiver_backend.repositories.UserRepository;
+import projects.caregiver_backend.repositories.projections.CaregiverRatingView;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +24,8 @@ public class CaregiverService {
 
     private final CaregiverRepository caregiverRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
+
 
     @Transactional
     public CaregiverResponse onboardCaregiver(
@@ -30,7 +37,7 @@ public class CaregiverService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (caregiverRepository.existsByUser(user)) {
-            throw new RuntimeException("Already onboarded as caregiver");
+            throw new IllegalStateException("Already onboarded as caregiver");
         }
 
         Caregiver caregiver = new Caregiver();
@@ -40,10 +47,7 @@ public class CaregiverService {
         caregiver.setNeighborhood(request.getNeighborhood());
         caregiver.setPhone(request.getPhone());
         caregiver.setBio(request.getBio());
-
-        if (caregiver.getOnboardingStatus() != OnboardingStatus.PENDING) {
-            throw new IllegalStateException("Caregiver already processed");
-        }
+        caregiver.setOnboardingStatus(OnboardingStatus.PENDING);
 
         Caregiver saved = caregiverRepository.save(caregiver);
 
@@ -53,42 +57,45 @@ public class CaregiverService {
                 saved.getCity(),
                 saved.getNeighborhood(),
                 saved.getPhone(),
-                saved.getBio()
+                saved.getBio(),
+                0.0,   // averageRating
+                0L     // reviewCount
         );
     }
+
 
     public List<CaregiverResponse> browseCaregivers(
             String city,
             String neighborhood
     ) {
 
-        List<Caregiver> caregivers;
+        List<Caregiver> caregivers =
+                caregiverRepository.findByCityAndNeighborhoodAndVerifiedTrue(city, neighborhood);
 
-        if (neighborhood != null && !neighborhood.isBlank()) {
-            caregivers = caregiverRepository
-                    .findByCityAndNeighborhoodAndOnboardingStatus(
-                            city,
-                            neighborhood,
-                            OnboardingStatus.VERIFIED
-                    );
-        } else {
-            caregivers = caregiverRepository
-                    .findByCityAndOnboardingStatus(
-                            city,
-                            OnboardingStatus.VERIFIED
-                    );
-        }
+        Map<UUID, CaregiverRatingView> ratingMap =
+                reviewRepository.fetchCaregiverRatings()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                CaregiverRatingView::getCaregiverId,
+                                r -> r
+                        ));
 
         return caregivers.stream()
-                .map(c -> new CaregiverResponse(
-                        c.getId(),
-                        c.getFullName(),
-                        c.getCity(),
-                        c.getNeighborhood(),
-                        c.getPhone(),
-                        c.getBio()
-                ))
+                .map(caregiver -> {
+                    CaregiverRatingView rating =
+                            ratingMap.get(caregiver.getId());
+
+                    return new CaregiverResponse(
+                            caregiver.getId(),
+                            caregiver.getFullName(),
+                            caregiver.getCity(),
+                            caregiver.getNeighborhood(),
+                            caregiver.getPhone(),
+                            caregiver.getBio(),
+                            rating != null ? rating.getAverageRating() : 0.0,
+                            rating != null ? rating.getReviewCount() : 0L
+                    );
+                })
                 .toList();
     }
-
 }

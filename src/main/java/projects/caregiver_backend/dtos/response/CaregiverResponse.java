@@ -8,5 +8,7 @@ public record CaregiverResponse(
         String city,
         String neighborhood,
         String phone,
-        String bio
+        String bio,
+        Double averageRating,
+        Long reviewCount
 ) {}

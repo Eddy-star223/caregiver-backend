@@ -44,6 +44,8 @@ public class SecurityConfig {
                         // Caregiver-only actions
                         .requestMatchers("/caregivers/onboard").hasRole("CAREGIVER")
                         .requestMatchers("/caregivers/**").authenticated()
+                        .requestMatchers("/reviews/**").authenticated()
+
 
                         // Everything else
                         .anyRequest().authenticated()
