@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/caregivers/onboard").hasRole("CAREGIVER")
                         .requestMatchers("/caregivers/**").authenticated()
                         .requestMatchers("/reviews/**").authenticated()
+                        .requestMatchers("/bookings/**").hasRole("USER")
+
 
 
                         // Everything else
