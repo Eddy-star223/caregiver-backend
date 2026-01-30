@@ -11,6 +11,7 @@ import projects.caregiver_backend.repositories.CaregiverRepository;
 import projects.caregiver_backend.repositories.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +68,48 @@ public class BookingService {
                 saved.getStartTime(),
                 saved.getEndTime(),
                 saved.getStatus(),
-                saved.getPrice()
+                saved.getTotalAmount()
+        );
+    }
+    @Transactional
+    public BookingResponse decideBooking(
+            String caregiverUsername,
+            UUID bookingId,
+            boolean accept
+    ) {
+
+        User caregiverUser = userRepository.findByUsername(caregiverUsername)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Caregiver caregiver = caregiverRepository.findByUser(caregiverUser)
+                .orElseThrow(() -> new RuntimeException("Caregiver profile not found"));
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        if (!booking.getCaregiver().getId().equals(caregiver.getId())) {
+            throw new SecurityException("You cannot modify this booking");
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new IllegalStateException("Booking already processed");
+        }
+
+        booking.setStatus(
+                accept ? BookingStatus.ACCEPTED : BookingStatus.REJECTED
+        );
+
+        Booking saved = bookingRepository.save(booking);
+
+        return new BookingResponse(
+                saved.getId(),
+                caregiver.getId(),
+                caregiver.getFullName(),
+                saved.getDate(),
+                saved.getStartTime(),
+                saved.getEndTime(),
+                saved.getStatus(),
+                saved.getTotalAmount()
         );
     }
 }

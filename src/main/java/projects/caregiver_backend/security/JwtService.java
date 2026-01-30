@@ -40,18 +40,18 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // 🧑‍⚖️ Extract role (THIS WAS MISSING)
+    // Extract role (THIS WAS MISSING)
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
-    // ✅ Validate token
+    // Validate token
     public boolean isTokenValid(String token, String username) {
         final String extractedUsername = extractUsername(token);
         return extractedUsername.equals(username) && !isTokenExpired(token);
     }
 
-    // ⏳ Expiration check
+    // Expiration check
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
@@ -60,7 +60,7 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // 🔎 Generic claim extractor
+    // Generic claim extractor
     private <T> T extractClaim(String token, Function<Claims, T> resolver) {
         Claims claims = Jwts.parser()
                 .verifyWith(key)

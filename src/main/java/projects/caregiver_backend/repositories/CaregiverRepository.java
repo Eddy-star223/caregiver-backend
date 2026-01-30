@@ -8,11 +8,17 @@ import projects.caregiver_backend.model.User;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CaregiverRepository extends JpaRepository<Caregiver, UUID> {
 
     boolean existsByUser(User user);
+
+    Optional<Caregiver> findByUser(User user);
+
+    Optional<Caregiver> findByIdAndUser(UUID id, User user);
+
 
     List<Caregiver> findByCityAndVerifiedTrue(String city);
 
@@ -46,7 +52,6 @@ AND c.onboardingStatus = 'APPROVED'
             BigDecimal minPrice,
             BigDecimal maxPrice
     );
-
 
 }
 
