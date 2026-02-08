@@ -1,8 +1,10 @@
 package projects.caregiver_backend.dtos.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class CaregiverOnboardingRequest {
 
     private String fullName;
