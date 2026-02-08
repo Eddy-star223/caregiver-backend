@@ -11,6 +11,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repository for Caregiver entity
+ * 
+ * Changed 'APPROVED' to 'VERIFIED' in filterCaregivers query
+ */
 public interface CaregiverRepository extends JpaRepository<Caregiver, UUID> {
 
     boolean existsByUser(User user);
@@ -18,7 +23,6 @@ public interface CaregiverRepository extends JpaRepository<Caregiver, UUID> {
     Optional<Caregiver> findByUser(User user);
 
     Optional<Caregiver> findByIdAndUser(UUID id, User user);
-
 
     List<Caregiver> findByCityAndVerifiedTrue(String city);
 
@@ -38,13 +42,18 @@ public interface CaregiverRepository extends JpaRepository<Caregiver, UUID> {
             OnboardingStatus status
     );
 
+    /**
+     *
+     * Changed 'APPROVED' to 'VERIFIED' to match OnboardingStatus enum
+     * The enum values are: PENDING, VERIFIED, REJECTED
+     */
     @Query("""
 SELECT c FROM Caregiver c
 WHERE (:city IS NULL OR c.city = :city)
 AND (:neighborhood IS NULL OR c.neighborhood = :neighborhood)
 AND (:minPrice IS NULL OR c.hourlyRate >= :minPrice)
 AND (:maxPrice IS NULL OR c.hourlyRate <= :maxPrice)
-AND c.onboardingStatus = 'APPROVED'
+AND c.onboardingStatus = 'VERIFIED'
 """)
     List<Caregiver> filterCaregivers(
             String city,
@@ -54,4 +63,3 @@ AND c.onboardingStatus = 'APPROVED'
     );
 
 }
-
