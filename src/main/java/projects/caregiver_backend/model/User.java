@@ -3,6 +3,14 @@ package projects.caregiver_backend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
+/**
+ * User entity representing all users in the system
+ * Users can have different roles: USER, CAREGIVER, or ADMIN
+ * 
+ * FIXED: Changed id type from String to UUID
+ */
 @Entity
 @Table(name = "app_users")
 @Getter @Setter
@@ -11,7 +19,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    private UUID id;  // Was String, now UUID
 
     @Column(nullable = false, unique = true)
     private String email;
