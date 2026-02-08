@@ -10,9 +10,17 @@ import projects.caregiver_backend.repositories.BookingRepository;
 import projects.caregiver_backend.repositories.CaregiverRepository;
 import projects.caregiver_backend.repositories.UserRepository;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Service for managing bookings
+ * Handles booking creation, conflict detection, and caregiver approval workflow
+ * 
+ * FIXED: Added total amount calculation based on hourly rate
+ */
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -58,6 +66,14 @@ public class BookingService {
         booking.setStatus(BookingStatus.PENDING);
         booking.setCreatedAt(LocalDateTime.now());
 
+        // Calculate total amount based on hourly rate and duration
+        BigDecimal totalAmount = calculateTotalAmount(
+                caregiver.getHourlyRate(),
+                request.startTime(),
+                request.endTime()
+        );
+        booking.setTotalAmount(totalAmount);
+
         Booking saved = bookingRepository.save(booking);
 
         return new BookingResponse(
@@ -71,6 +87,33 @@ public class BookingService {
                 saved.getTotalAmount()
         );
     }
+
+    /**
+     * Calculate total booking amount
+     * hourlyRate × duration (in hours, including fractions)
+     * 
+     * @param hourlyRate The caregiver's hourly rate
+     * @param startTime Booking start time
+     * @param endTime Booking end time
+     * @return Total amount to charge
+     */
+    private BigDecimal calculateTotalAmount(
+            BigDecimal hourlyRate,
+            java.time.LocalTime startTime,
+            java.time.LocalTime endTime
+    ) {
+        // Calculate duration in minutes
+        long minutes = Duration.between(startTime, endTime).toMinutes();
+        
+        // Convert minutes to hours (as decimal)
+        BigDecimal hours = BigDecimal.valueOf(minutes)
+                .divide(BigDecimal.valueOf(60), 2, java.math.RoundingMode.HALF_UP);
+        
+        // Calculate total: hourlyRate × hours
+        return hourlyRate.multiply(hours)
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
     @Transactional
     public BookingResponse decideBooking(
             String caregiverUsername,
