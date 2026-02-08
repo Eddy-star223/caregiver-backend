@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import projects.caregiver_backend.dtos.request.LoginRequest;
 import projects.caregiver_backend.dtos.request.RegisterRequest;
-import projects.caregiver_backend.dtos.response.LoginResponse;
 import projects.caregiver_backend.dtos.response.RegisterResponse;
 import projects.caregiver_backend.model.User;
 import projects.caregiver_backend.service.AuthService;
