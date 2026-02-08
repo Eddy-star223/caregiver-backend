@@ -18,8 +18,10 @@ public class JwtService {
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long expiration
-    ) {
+            @Value("${jwt.expiration}") long expiration) {
+            if(secret.length() < 32) {
+                throw new IllegalArgumentException("Secret length must be at least 32 characters");
+    }
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expiration = expiration;
     }
