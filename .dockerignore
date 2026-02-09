@@ -1,0 +1,67 @@
+.git
+.gitignore
+.gitattributes
+
+# Build output (will be created in container)
+target/
+build/
+dist/
+
+# IDE
+../.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+*.swp
+*.swo
+
+# Environment files (IMPORTANT: exclude these)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (optional - can be included)
+README.md
+HELP.md
+docs/
+
+# Docker files (don't need these inside the image)
+docker-compose*.yml
+.dockerignore
+
+# Test output
+*.test.java
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Node modules (if any frontend)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Maven wrapper jar (but keep the properties)
+.mvn/wrapper/maven-wrapper.jar
